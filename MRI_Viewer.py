@@ -23,19 +23,23 @@ from scipy import ndimage as ndi
 from skimage.feature import peak_local_max
 from skimage import morphology
 
-
-"Part 2: Creating an MRI_mask of the selected scan"
-#store a single dicom slice with all of the info to access the voxel dimensions later
 global dcm
-
-"Make Image Files a list containing all the DCM scans in the desired plane"
-image_files = dicom_collection[last_button_pressed]
-dcm = dcmread(image_files[3])
-
 global MRI_Pixels
 global MRI_mask
 global labeled_mask
 global footprint_size
+global image_files
+
+
+
+"in order to use initialize image_files as a list containing all the paths for DCM scans in the desired plane and Path as the directory to write the mask of the segmented region"
+image_files = 
+Path = 
+dcm = dcmread(image_files[3])
+
+#initialize a variable for a single dicom slice with all of the info to access the voxel dimensions later
+
+
 footprint_size = 5
 # contain the greyscale values from 0-255 for the MRI
 MRI_arrays = [(dcmread(image_files[i5]).pixel_array) for i5 in range(len(image_files))]
@@ -610,10 +614,3 @@ if __name__ == "__main__":
     app.minsize(1000, 400)
     app.mainloop()
     
-    
-    
-file_path = "my_text_file.txt"
-text_content = "This is some text to write to the file.\nThis is another line of text."
-
-with open(file_path, "w") as file:
-    file.write(text_content)
