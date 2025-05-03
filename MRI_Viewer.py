@@ -35,16 +35,17 @@ global image_files
 "in order to use initialize image_files as a list containing all the paths for DCM scans in the desired plane and Path as the directory to write the mask of the segmented region"
 image_files = 
 Path = 
-dcm = dcmread(image_files[3])
 
 #initialize a variable for a single dicom slice with all of the info to access the voxel dimensions later
+dcm = dcmread(image_files[3])
 
-
+# Initialize a parameter for the footprint size for the watershed filter
 footprint_size = 5
+
 # contain the greyscale values from 0-255 for the MRI
 MRI_arrays = [(dcmread(image_files[i5]).pixel_array) for i5 in range(len(image_files))]
 
-# uncomment to use without a gausssian filter
+# change MRI_Pixels_no_filt to MRI_Pixels and comment the region below to use without a gaussian filter
 MRI_Stack = np.stack(MRI_arrays, axis = -1).astype(np.uint8)
 MRI_Pixels_no_filt = np.round(255 * ((MRI_Stack - MRI_Stack.min())/(MRI_Stack.max() - MRI_Stack.min()))).astype(np.uint8)
 
