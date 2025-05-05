@@ -607,8 +607,7 @@ class MRIViewer(tk.Tk):
         pydicom.dcmwrite(file_path, ds)
             
 if __name__ == "__main__":
-    # Replace 'mri_images' with the path to your folder containing MRI slice images.
-    
+   
     
     # Launch the MRI Segmenting viewer
     app = MRIViewer(image_files, MRI_Pixels)
