@@ -33,8 +33,8 @@ global image_files
 
 
 "in order to use initialize image_files as a list containing all the paths for DCM scans in the desired plane and Path as the directory to write the mask of the segmented region"
-image_files = 
-Path = 
+Path = filedialog.askdirectory(initialdir='C:\\', title="Select Patient Folder")
+image_files = [os.path.join(Path, f) for f in os.listdir(Path) if os.path.isfile(os.path.join(Path, f))]
 
 #initialize a variable for a single dicom slice with all of the info to access the voxel dimensions later
 dcm = dcmread(image_files[3])
@@ -53,6 +53,10 @@ MRI_Pixels_no_filt = np.round(255 * ((MRI_Stack - MRI_Stack.min())/(MRI_Stack.ma
 # comment to use without a gaussian fillter
 sigma = 1 # Blur amount
 MRI_Pixels = gaussian_filter(MRI_Pixels_no_filt,sigma =sigma)
+
+# Get the image size and initialize a blank mask for the window level
+image_size = dcm.pixel_array.shape
+mask = np.zeros(image_size, dtype=np.uint32)
 
 
 class MRIViewer(tk.Tk):
@@ -79,12 +83,13 @@ class MRIViewer(tk.Tk):
         tk.Label(self, text="Min Value:").grid(row=0, column=1)
         self.min_entry = tk.Entry(self)
         self.min_entry.grid(row=1, column=1)
-        self.min_entry.insert(0, "20")  # Default value
+        self.min_entry.insert(0, "1")  # Default value
         
+        max_string = str(len(image_files)-1)
         tk.Label(self, text="Max Value:").grid(row=0, column=2)
         self.max_entry = tk.Entry(self)
         self.max_entry.grid(row=1, column=2)
-        self.max_entry.insert(0, "130")  # Default value
+        self.max_entry.insert(0, max_string)  # Default value
         
         # create a status label for modified endpoints
         self.status_label = tk.Label(self, text="", fg="black")
@@ -103,9 +108,10 @@ class MRIViewer(tk.Tk):
         self.slider.set = 0
         
         
-        
+        global image_size
         # On top of the image label create a canvas to draw a ROI
-        self.canvas = tk.Canvas(self, width=256, height=256)
+        self.canvas = tk.Canvas(self, width=image_size[0], height=image_size[1])
+        #self.canvas = tk.Canvas(self)
         self.canvas.grid(row=0, column=0, rowspan = 5)
         
         # Variables to hold ROI points and the freehand line
@@ -121,25 +127,25 @@ class MRIViewer(tk.Tk):
 
         # Create label widget for the seed point image
         self.seed_image = tk.Label(self)
-        self.seed_image.grid(row=0, column=3, rowspan = 5)
+        self.seed_image.grid(row=0, column=3, rowspan = 5,columnspan = 3)
         
         # create a slider for the seed intensity of the mask
         min_intensity = int(MRI_Pixels.min())
         max_intensity = int(MRI_Pixels.max())
         self.Seed = tk.Scale(self, from_=min_intensity, to=max_intensity, resolution=1,
                                     orient=tk.VERTICAL, label="Seed Value", command=self.callback_functions)
-        self.Seed.grid(row=0, column=4)
+        self.Seed.grid(row=6, column=3)
         self.Seed.set = 50
         
         # Create a slider for the connectivity tolerance of the seed points
         self.Tolerance = tk.Scale(self, from_=0, to=200, resolution= 1,
                                    orient=tk.VERTICAL, label="Tolerance", command=self.callback_functions)
-        self.Tolerance.grid(row=0, column=5)
+        self.Tolerance.grid(row=6, column=4)
 
         # create a slider for the additional edge tolerance of the segmented mask
         self.Edge_Tolerance = tk.Scale(self, from_=0, to=50, resolution= 1,
                                    orient=tk.VERTICAL, label="Mask EdgeTolerance", command=self.callback_functions)
-        self.Edge_Tolerance.grid(row=3, column=4)
+        self.Edge_Tolerance.grid(row=6, column=5)
        
         # Create the button to perform the segmentation algorithm from seed points
         self.update_mask = tk.Button(self, text="Update Mask", command=self.create_connected_mask)
@@ -369,6 +375,7 @@ class MRIViewer(tk.Tk):
         """
         TopL = tk.Toplevel(self)
         global MRI_mask
+        global image_size
         
         # Label to display the masked image
         self.mask_label = tk.Label(TopL)
@@ -383,7 +390,7 @@ class MRIViewer(tk.Tk):
         self.sliderF.grid(row = 1, column = 0)
         
         # Canvas for Eraser/adding tool
-        self.canvasF = tk.Canvas(TopL, width=256, height=256)
+        self.canvasF = tk.Canvas(TopL, width=image_size[0], height=image_size[1])
         self.canvasF.grid(row=0, column=0)
         self.selectpoints = []
         self.canvasF.bind("<Button-1>", self.start_select)
